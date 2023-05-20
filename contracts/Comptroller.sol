@@ -8,13 +8,14 @@ import "./ComptrollerInterface.sol";
 import "./ComptrollerStorage.sol";
 import "./Unitroller.sol";
 import "./Governance/Comp.sol";
+import "./RewardDistributor.sol";
 
 /**
  * @title Compound's Comptroller Contract
  * @author Compound
  */
 contract Comptroller is
-    ComptrollerV7Storage,
+    ComptrollerV1Storage,
     ComptrollerInterface,
     ComptrollerErrorReporter,
     ExponentialNoError
@@ -99,25 +100,11 @@ contract Comptroller is
         address newBorrowCapGuardian
     );
 
-    /// @notice Emitted when COMP is granted by admin
-    event CompGranted(address recipient, uint256 amount);
-
-    /// @notice Emitted when COMP accrued for a user has been manually adjusted.
-    event CompAccruedAdjusted(
-        address indexed user,
-        uint256 oldCompAccrued,
-        uint256 newCompAccrued
+    /// @notice Emitted when reward distributor is changed
+    event NewRewardDistributor(
+        address oldRewardDistributor,
+        address newRewardDistributor
     );
-
-    /// @notice Emitted when COMP receivable for a user has been updated.
-    event CompReceivableUpdated(
-        address indexed user,
-        uint256 oldCompReceivable,
-        uint256 newCompReceivable
-    );
-
-    /// @notice The initial COMP index for a market
-    uint224 public constant compInitialIndex = 1e36;
 
     // closeFactorMantissa must be strictly greater than this value
     uint256 internal constant closeFactorMinMantissa = 0.05e18; // 0.05
@@ -343,7 +330,7 @@ contract Comptroller is
 
         // Shh - we don't ever want this hook to be marked pure
         if (false) {
-            maxAssets = maxAssets;
+            // oracle = oracle;
         }
     }
 
@@ -492,9 +479,8 @@ contract Comptroller is
         }
 
         // Keep the flywheel moving
-        Exp memory borrowIndex = Exp({mantissa: CToken(cToken).borrowIndex()});
-        updateCompBorrowIndex(cToken, borrowIndex);
-        distributeBorrowerComp(cToken, borrower, borrowIndex);
+        updateCompBorrowIndex(cToken);
+        distributeBorrowerComp(cToken, borrower);
 
         return uint256(Error.NO_ERROR);
     }
@@ -517,7 +503,7 @@ contract Comptroller is
 
         // Shh - we don't ever want this hook to be marked pure
         if (false) {
-            maxAssets = maxAssets;
+            //oracle = oracle;
         }
     }
 
@@ -545,9 +531,8 @@ contract Comptroller is
         }
 
         // Keep the flywheel moving
-        Exp memory borrowIndex = Exp({mantissa: CToken(cToken).borrowIndex()});
-        updateCompBorrowIndex(cToken, borrowIndex);
-        distributeBorrowerComp(cToken, borrower, borrowIndex);
+        updateCompBorrowIndex(cToken);
+        distributeBorrowerComp(cToken, borrower);
 
         return uint256(Error.NO_ERROR);
     }
@@ -575,7 +560,7 @@ contract Comptroller is
 
         // Shh - we don't ever want this hook to be marked pure
         if (false) {
-            maxAssets = maxAssets;
+            // oracle = oracle;
         }
     }
 
@@ -665,7 +650,7 @@ contract Comptroller is
 
         // Shh - we don't ever want this hook to be marked pure
         if (false) {
-            maxAssets = maxAssets;
+            // oracle = oracle;
         }
     }
 
@@ -736,7 +721,7 @@ contract Comptroller is
 
         // Shh - we don't ever want this hook to be marked pure
         if (false) {
-            maxAssets = maxAssets;
+            // oracle = oracle;
         }
     }
 
@@ -793,7 +778,7 @@ contract Comptroller is
 
         // Shh - we don't ever want this hook to be marked pure
         if (false) {
-            maxAssets = maxAssets;
+            // oracle = oracle;
         }
     }
 
@@ -1246,27 +1231,6 @@ contract Comptroller is
             getBlockNumber(),
             "block number exceeds 32 bits"
         );
-
-        CompMarketState storage supplyState = compSupplyState[cToken];
-        CompMarketState storage borrowState = compBorrowState[cToken];
-
-        /*
-         * Update market state indices
-         */
-        if (supplyState.index == 0) {
-            // Initialize supply state index with default value
-            supplyState.index = compInitialIndex;
-        }
-
-        if (borrowState.index == 0) {
-            // Initialize borrow state index with default value
-            borrowState.index = compInitialIndex;
-        }
-
-        /*
-         * Update market state block numbers
-         */
-        supplyState.block = borrowState.block = blockNumber;
     }
 
     /**
@@ -1399,6 +1363,23 @@ contract Comptroller is
         return state;
     }
 
+    /**
+     * @notice Admin function to change the Reward Distributor
+     * @param newRewardDistributor The address of the new Reward Distributor
+     */
+    function _setRewardDistributor(address newRewardDistributor) external {
+        require(msg.sender == admin, "only admin can set reward distributor");
+
+        // Save current value for inclusion in log
+        address oldRewardDistributor = rewardDistributor;
+
+        // Store rewardDistributor with value newRewardDistributor
+        rewardDistributor = newRewardDistributor;
+
+        // Emit NewRewardDistributor(OldRewardDistributor, NewRewardDistributor)
+        emit NewRewardDistributor(oldRewardDistributor, newRewardDistributor);
+    }
+
     function _become(Unitroller unitroller) public {
         require(
             msg.sender == unitroller.admin(),
@@ -1410,323 +1391,41 @@ contract Comptroller is
         );
     }
 
-    /// @notice Delete this function after proposal 65 is executed
-    function fixBadAccruals(
-        address[] calldata affectedUsers,
-        uint256[] calldata amounts
-    ) external {
-        require(msg.sender == admin, "Only admin can call this function"); // Only the timelock can call this function
-        require(
-            !proposal65FixExecuted,
-            "Already executed this one-off function"
-        ); // Require that this function is only called once
-        require(affectedUsers.length == amounts.length, "Invalid input");
-
-        // Loop variables
-        address user;
-        uint256 currentAccrual;
-        uint256 amountToSubtract;
-        uint256 newAccrual;
-
-        // Iterate through all affected users
-        for (uint256 i = 0; i < affectedUsers.length; ++i) {
-            user = affectedUsers[i];
-            currentAccrual = compAccrued[user];
-
-            amountToSubtract = amounts[i];
-
-            // The case where the user has claimed and received an incorrect amount of COMP.
-            // The user has less currently accrued than the amount they incorrectly received.
-            if (amountToSubtract > currentAccrual) {
-                // Amount of COMP the user owes the protocol
-                uint256 accountReceivable = amountToSubtract - currentAccrual; // Underflow safe since amountToSubtract > currentAccrual
-
-                uint256 oldReceivable = compReceivable[user];
-                uint256 newReceivable = add_(oldReceivable, accountReceivable);
-
-                // Accounting: record the COMP debt for the user
-                compReceivable[user] = newReceivable;
-
-                emit CompReceivableUpdated(user, oldReceivable, newReceivable);
-
-                amountToSubtract = currentAccrual;
-            }
-
-            if (amountToSubtract > 0) {
-                // Subtract the bad accrual amount from what they have accrued.
-                // Users will keep whatever they have correctly accrued.
-                compAccrued[user] = newAccrual = sub_(
-                    currentAccrual,
-                    amountToSubtract
-                );
-
-                emit CompAccruedAdjusted(user, currentAccrual, newAccrual);
-            }
-        }
-
-        proposal65FixExecuted = true; // Makes it so that this function cannot be called again
-    }
+    /*** Reward Distributor Notifications ***/
 
     /**
-     * @notice Checks caller is admin, or this contract is becoming the new implementation
-     */
-    function adminOrInitializing() internal view returns (bool) {
-        return msg.sender == admin || msg.sender == comptrollerImplementation;
-    }
-
-    /*** Comp Distribution ***/
-
-    /**
-     * @notice Set COMP speed for a single market
-     * @param cToken The market whose COMP speed to update
-     * @param supplySpeed New supply-side COMP speed for market
-     * @param borrowSpeed New borrow-side COMP speed for market
-     */
-    function setCompSpeedInternal(
-        CToken cToken,
-        uint256 supplySpeed,
-        uint256 borrowSpeed
-    ) internal {
-        Market storage market = markets[address(cToken)];
-        require(market.isListed, "comp market is not listed");
-
-        if (compSupplySpeeds[address(cToken)] != supplySpeed) {
-            // Supply speed updated so let's update supply state to ensure that
-            //  1. COMP accrued properly for the old speed, and
-            //  2. COMP accrued at the new speed starts after this block.
-            updateCompSupplyIndex(address(cToken));
-
-            // Update speed and emit event
-            compSupplySpeeds[address(cToken)] = supplySpeed;
-            emit CompSupplySpeedUpdated(cToken, supplySpeed);
-        }
-
-        if (compBorrowSpeeds[address(cToken)] != borrowSpeed) {
-            // Borrow speed updated so let's update borrow state to ensure that
-            //  1. COMP accrued properly for the old speed, and
-            //  2. COMP accrued at the new speed starts after this block.
-            Exp memory borrowIndex = Exp({mantissa: cToken.borrowIndex()});
-            updateCompBorrowIndex(address(cToken), borrowIndex);
-
-            // Update speed and emit event
-            compBorrowSpeeds[address(cToken)] = borrowSpeed;
-            emit CompBorrowSpeedUpdated(cToken, borrowSpeed);
-        }
-    }
-
-    /**
-     * @notice Accrue COMP to the market by updating the supply index
+     * @notice Notify reward distributor for supply index update
      * @param cToken The market whose supply index to update
-     * @dev Index is a cumulative sum of the COMP per cToken accrued.
      */
     function updateCompSupplyIndex(address cToken) internal {
-        CompMarketState storage supplyState = compSupplyState[cToken];
-        uint256 supplySpeed = compSupplySpeeds[cToken];
-        uint32 blockNumber = safe32(
-            getBlockNumber(),
-            "block number exceeds 32 bits"
-        );
-        uint256 deltaBlocks = sub_(
-            uint256(blockNumber),
-            uint256(supplyState.block)
-        );
-        if (deltaBlocks > 0 && supplySpeed > 0) {
-            uint256 supplyTokens = CToken(cToken).totalSupply();
-            uint256 compAccrued = mul_(deltaBlocks, supplySpeed);
-            Double memory ratio = supplyTokens > 0
-                ? fraction(compAccrued, supplyTokens)
-                : Double({mantissa: 0});
-            supplyState.index = safe224(
-                add_(Double({mantissa: supplyState.index}), ratio).mantissa,
-                "new index exceeds 224 bits"
-            );
-            supplyState.block = blockNumber;
-        } else if (deltaBlocks > 0) {
-            supplyState.block = blockNumber;
-        }
-
-        (bool success, ) = getExternalRewardDistributorAddress().call(
-            abi.encodeWithSignature("notifySupplyIndex(address)", cToken)
-        );
+        RewardDistributor(rewardDistributor).notifySupplyIndex(cToken);
     }
 
     /**
-     * @notice Accrue COMP to the market by updating the borrow index
+     * @notice Notify reward distributor for borrow index update
      * @param cToken The market whose borrow index to update
-     * @dev Index is a cumulative sum of the COMP per cToken accrued.
      */
-    function updateCompBorrowIndex(
-        address cToken,
-        Exp memory marketBorrowIndex
-    ) internal {
-        CompMarketState storage borrowState = compBorrowState[cToken];
-        uint256 borrowSpeed = compBorrowSpeeds[cToken];
-        uint32 blockNumber = safe32(
-            getBlockNumber(),
-            "block number exceeds 32 bits"
-        );
-        uint256 deltaBlocks = sub_(
-            uint256(blockNumber),
-            uint256(borrowState.block)
-        );
-        if (deltaBlocks > 0 && borrowSpeed > 0) {
-            uint256 borrowAmount = div_(
-                CToken(cToken).totalBorrows(),
-                marketBorrowIndex
-            );
-            uint256 compAccrued = mul_(deltaBlocks, borrowSpeed);
-            Double memory ratio = borrowAmount > 0
-                ? fraction(compAccrued, borrowAmount)
-                : Double({mantissa: 0});
-            borrowState.index = safe224(
-                add_(Double({mantissa: borrowState.index}), ratio).mantissa,
-                "new index exceeds 224 bits"
-            );
-            borrowState.block = blockNumber;
-        } else if (deltaBlocks > 0) {
-            borrowState.block = blockNumber;
-        }
-
-        (bool success, ) = getExternalRewardDistributorAddress().call(
-            abi.encodeWithSignature("notifyBorrowIndex(address)", cToken)
-        );
+    function updateCompBorrowIndex(address cToken) internal {
+        RewardDistributor(rewardDistributor).notifyBorrowIndex(cToken);
     }
 
     /**
-     * @notice Calculate COMP accrued by a supplier and possibly transfer it to them
+     * @notice Notify reward distributor for supplier update
      * @param cToken The market in which the supplier is interacting
      * @param supplier The address of the supplier to distribute COMP to
      */
     function distributeSupplierComp(address cToken, address supplier) internal {
-        // TODO: Don't distribute supplier COMP if the user is not in the supplier market.
-        // This check should be as gas efficient as possible as distributeSupplierComp is called in many places.
-        // - We really don't want to call an external contract as that's quite expensive.
-
-        CompMarketState storage supplyState = compSupplyState[cToken];
-        uint256 supplyIndex = supplyState.index;
-        uint256 supplierIndex = compSupplierIndex[cToken][supplier];
-
-        // Update supplier's index to the current index since we are distributing accrued COMP
-        compSupplierIndex[cToken][supplier] = supplyIndex;
-
-        if (supplierIndex == 0 && supplyIndex >= compInitialIndex) {
-            // Covers the case where users supplied tokens before the market's supply state index was set.
-            // Rewards the user with COMP accrued from the start of when supplier rewards were first
-            // set for the market.
-            supplierIndex = compInitialIndex;
-        }
-
-        // Calculate change in the cumulative sum of the COMP per cToken accrued
-        Double memory deltaIndex = Double({
-            mantissa: sub_(supplyIndex, supplierIndex)
-        });
-
-        uint256 supplierTokens = CToken(cToken).balanceOf(supplier);
-
-        // Calculate COMP accrued: cTokenAmount * accruedPerCToken
-        uint256 supplierDelta = mul_(supplierTokens, deltaIndex);
-
-        uint256 supplierAccrued = add_(compAccrued[supplier], supplierDelta);
-        compAccrued[supplier] = supplierAccrued;
-
-        emit DistributedSupplierComp(
-            CToken(cToken),
-            supplier,
-            supplierDelta,
-            supplyIndex
-        );
-
-        (bool success, ) = getExternalRewardDistributorAddress().call(
-            abi.encodeWithSignature(
-                "notifySupplier(address,address)",
-                cToken,
-                supplier
-            )
-        );
+        RewardDistributor(rewardDistributor).notifySupplier(cToken, supplier);
     }
 
     /**
-     * @notice Calculate COMP accrued by a borrower and possibly transfer it to them
+     * @notice Notify reward distributor for borrower update
      * @dev Borrowers will not begin to accrue until after the first interaction with the protocol.
      * @param cToken The market in which the borrower is interacting
      * @param borrower The address of the borrower to distribute COMP to
      */
-    function distributeBorrowerComp(
-        address cToken,
-        address borrower,
-        Exp memory marketBorrowIndex
-    ) internal {
-        // TODO: Don't distribute supplier COMP if the user is not in the borrower market.
-        // This check should be as gas efficient as possible as distributeBorrowerComp is called in many places.
-        // - We really don't want to call an external contract as that's quite expensive.
-
-        CompMarketState storage borrowState = compBorrowState[cToken];
-        uint256 borrowIndex = borrowState.index;
-        uint256 borrowerIndex = compBorrowerIndex[cToken][borrower];
-
-        // Update borrowers's index to the current index since we are distributing accrued COMP
-        compBorrowerIndex[cToken][borrower] = borrowIndex;
-
-        if (borrowerIndex == 0 && borrowIndex >= compInitialIndex) {
-            // Covers the case where users borrowed tokens before the market's borrow state index was set.
-            // Rewards the user with COMP accrued from the start of when borrower rewards were first
-            // set for the market.
-            borrowerIndex = compInitialIndex;
-        }
-
-        // Calculate change in the cumulative sum of the COMP per borrowed unit accrued
-        Double memory deltaIndex = Double({
-            mantissa: sub_(borrowIndex, borrowerIndex)
-        });
-
-        uint256 borrowerAmount = div_(
-            CToken(cToken).borrowBalanceStored(borrower),
-            marketBorrowIndex
-        );
-
-        // Calculate COMP accrued: cTokenAmount * accruedPerBorrowedUnit
-        uint256 borrowerDelta = mul_(borrowerAmount, deltaIndex);
-
-        uint256 borrowerAccrued = add_(compAccrued[borrower], borrowerDelta);
-        compAccrued[borrower] = borrowerAccrued;
-
-        emit DistributedBorrowerComp(
-            CToken(cToken),
-            borrower,
-            borrowerDelta,
-            borrowIndex
-        );
-
-        (bool success, ) = getExternalRewardDistributorAddress().call(
-            abi.encodeWithSignature(
-                "notifyBorrower(address,address)",
-                cToken,
-                borrower
-            )
-        );
-    }
-
-    /**
-     * @notice Calculate additional accrued COMP for a contributor since last accrual
-     * @param contributor The address to calculate contributor rewards for
-     */
-    function updateContributorRewards(address contributor) public {
-        uint256 compSpeed = compContributorSpeeds[contributor];
-        uint256 blockNumber = getBlockNumber();
-        uint256 deltaBlocks = sub_(
-            blockNumber,
-            lastContributorBlock[contributor]
-        );
-        if (deltaBlocks > 0 && compSpeed > 0) {
-            uint256 newAccrued = mul_(deltaBlocks, compSpeed);
-            uint256 contributorAccrued = add_(
-                compAccrued[contributor],
-                newAccrued
-            );
-
-            compAccrued[contributor] = contributorAccrued;
-            lastContributorBlock[contributor] = blockNumber;
-        }
+    function distributeBorrowerComp(address cToken, address borrower) internal {
+        RewardDistributor(rewardDistributor).notifyBorrower(cToken, borrower);
     }
 
     /**
@@ -1765,14 +1464,9 @@ contract Comptroller is
             CToken cToken = cTokens[i];
             require(markets[address(cToken)].isListed, "market must be listed");
             if (borrowers == true) {
-                Exp memory borrowIndex = Exp({mantissa: cToken.borrowIndex()});
-                updateCompBorrowIndex(address(cToken), borrowIndex);
+                updateCompBorrowIndex(address(cToken));
                 for (uint256 j = 0; j < holders.length; j++) {
-                    distributeBorrowerComp(
-                        address(cToken),
-                        holders[j],
-                        borrowIndex
-                    );
+                    distributeBorrowerComp(address(cToken), holders[j]);
                 }
             }
             if (suppliers == true) {
@@ -1782,100 +1476,8 @@ contract Comptroller is
                 }
             }
         }
-        for (uint256 j = 0; j < holders.length; j++) {
-            compAccrued[holders[j]] = grantCompInternal(
-                holders[j],
-                compAccrued[holders[j]]
-            );
-        }
 
-        (bool success, ) = getExternalRewardDistributorAddress().call(
-            abi.encodeWithSignature("claim(address[])", holders)
-        );
-    }
-
-    /**
-     * @notice Transfer COMP to the user
-     * @dev Note: If there is not enough COMP, we do not perform the transfer all.
-     * @param user The address of the user to transfer COMP to
-     * @param amount The amount of COMP to (possibly) transfer
-     * @return The amount of COMP which was NOT transferred to the user
-     */
-    function grantCompInternal(
-        address user,
-        uint256 amount
-    ) internal returns (uint256) {
-        Comp comp = Comp(getCompAddress());
-        uint256 compRemaining = comp.balanceOf(address(this));
-        if (amount > 0 && amount <= compRemaining) {
-            comp.transfer(user, amount);
-            return 0;
-        }
-        return amount;
-    }
-
-    /*** Comp Distribution Admin ***/
-
-    /**
-     * @notice Transfer COMP to the recipient
-     * @dev Note: If there is not enough COMP, we do not perform the transfer all.
-     * @param recipient The address of the recipient to transfer COMP to
-     * @param amount The amount of COMP to (possibly) transfer
-     */
-    function _grantComp(address recipient, uint256 amount) public {
-        require(adminOrInitializing(), "only admin can grant comp");
-        uint256 amountLeft = grantCompInternal(recipient, amount);
-        require(amountLeft == 0, "insufficient comp for grant");
-        emit CompGranted(recipient, amount);
-    }
-
-    /**
-     * @notice Set COMP borrow and supply speeds for the specified markets.
-     * @param cTokens The markets whose COMP speed to update.
-     * @param supplySpeeds New supply-side COMP speed for the corresponding market.
-     * @param borrowSpeeds New borrow-side COMP speed for the corresponding market.
-     */
-    function _setCompSpeeds(
-        CToken[] memory cTokens,
-        uint256[] memory supplySpeeds,
-        uint256[] memory borrowSpeeds
-    ) public {
-        require(adminOrInitializing(), "only admin can set comp speed");
-
-        uint256 numTokens = cTokens.length;
-        require(
-            numTokens == supplySpeeds.length &&
-                numTokens == borrowSpeeds.length,
-            "Comptroller::_setCompSpeeds invalid input"
-        );
-
-        for (uint256 i = 0; i < numTokens; ++i) {
-            setCompSpeedInternal(cTokens[i], supplySpeeds[i], borrowSpeeds[i]);
-        }
-    }
-
-    /**
-     * @notice Set COMP speed for a single contributor
-     * @param contributor The contributor whose COMP speed to update
-     * @param compSpeed New COMP speed for contributor
-     */
-    function _setContributorCompSpeed(
-        address contributor,
-        uint256 compSpeed
-    ) public {
-        require(adminOrInitializing(), "only admin can set comp speed");
-
-        // note that COMP speed could be set to 0 to halt liquidity rewards for a contributor
-        updateContributorRewards(contributor);
-        if (compSpeed == 0) {
-            // release storage
-            delete lastContributorBlock[contributor];
-        } else {
-            lastContributorBlock[contributor] = getBlockNumber();
-        }
-        compContributorSpeeds[contributor] = compSpeed;
-
-        emit ContributorCompSpeedUpdated(contributor, compSpeed);
+        RewardDistributor(rewardDistributor).claim(holders);
     }
 
     /**
@@ -1901,27 +1503,5 @@ contract Comptroller is
 
     function getBlockNumber() public view virtual returns (uint256) {
         return block.timestamp;
-    }
-
-    /**
-     * @notice Return the address of the MARE token
-     * @return The address of MARE
-     */
-    function getCompAddress() public view virtual returns (address) {
-        return 0xd86C8d4279CCaFbec840c782BcC50D201f277419;
-    }
-
-    /**
-     * @notice Return the address of the external reward distributor
-     * @return The address of the external reward distributor
-     */
-
-    function getExternalRewardDistributorAddress()
-        public
-        view
-        virtual
-        returns (address)
-    {
-        return 0xa02B2b868B118920990D7BC0fFA9468E44e34663;
     }
 }
