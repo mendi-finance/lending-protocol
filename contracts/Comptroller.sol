@@ -7,7 +7,6 @@ import "./PriceOracle.sol";
 import "./ComptrollerInterface.sol";
 import "./ComptrollerStorage.sol";
 import "./Unitroller.sol";
-import "./Governance/Comp.sol";
 import "./RewardDistributor.sol";
 
 /**
@@ -62,34 +61,6 @@ contract Comptroller is
 
     /// @notice Emitted when an action is paused on a market
     event ActionPaused(CToken cToken, string action, bool pauseState);
-
-    /// @notice Emitted when a new borrow-side COMP speed is calculated for a market
-    event CompBorrowSpeedUpdated(CToken indexed cToken, uint256 newSpeed);
-
-    /// @notice Emitted when a new supply-side COMP speed is calculated for a market
-    event CompSupplySpeedUpdated(CToken indexed cToken, uint256 newSpeed);
-
-    /// @notice Emitted when a new COMP speed is set for a contributor
-    event ContributorCompSpeedUpdated(
-        address indexed contributor,
-        uint256 newSpeed
-    );
-
-    /// @notice Emitted when COMP is distributed to a supplier
-    event DistributedSupplierComp(
-        CToken indexed cToken,
-        address indexed supplier,
-        uint256 compDelta,
-        uint256 compSupplyIndex
-    );
-
-    /// @notice Emitted when COMP is distributed to a borrower
-    event DistributedBorrowerComp(
-        CToken indexed cToken,
-        address indexed borrower,
-        uint256 compDelta,
-        uint256 compBorrowIndex
-    );
 
     /// @notice Emitted when borrow cap for a cToken is changed
     event NewBorrowCap(CToken indexed cToken, uint256 newBorrowCap);
@@ -503,7 +474,7 @@ contract Comptroller is
 
         // Shh - we don't ever want this hook to be marked pure
         if (false) {
-            //oracle = oracle;
+            oracle = oracle;
         }
     }
 
@@ -560,7 +531,7 @@ contract Comptroller is
 
         // Shh - we don't ever want this hook to be marked pure
         if (false) {
-            // oracle = oracle;
+            oracle = oracle;
         }
     }
 
@@ -650,7 +621,7 @@ contract Comptroller is
 
         // Shh - we don't ever want this hook to be marked pure
         if (false) {
-            // oracle = oracle;
+            oracle = oracle;
         }
     }
 
@@ -721,7 +692,7 @@ contract Comptroller is
 
         // Shh - we don't ever want this hook to be marked pure
         if (false) {
-            // oracle = oracle;
+            oracle = oracle;
         }
     }
 
@@ -778,7 +749,7 @@ contract Comptroller is
 
         // Shh - we don't ever want this hook to be marked pure
         if (false) {
-            // oracle = oracle;
+            oracle = oracle;
         }
     }
 
@@ -1212,7 +1183,6 @@ contract Comptroller is
         newMarket.collateralFactorMantissa = 0;
 
         _addMarketInternal(address(cToken));
-        _initializeMarket(address(cToken));
 
         emit MarketListed(cToken);
 
@@ -1224,13 +1194,6 @@ contract Comptroller is
             require(allMarkets[i] != CToken(cToken), "market already added");
         }
         allMarkets.push(CToken(cToken));
-    }
-
-    function _initializeMarket(address cToken) internal {
-        uint32 blockNumber = safe32(
-            getBlockNumber(),
-            "block number exceeds 32 bits"
-        );
     }
 
     /**
