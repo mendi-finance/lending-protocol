@@ -109,6 +109,11 @@ contract CTokenStorage {
      * @notice Share of seized collateral that is added to reserves
      */
     uint public constant protocolSeizeShareMantissa = 2.8e16; //2.8%
+
+    /**
+     * @notice The reserve guardian can reduce the reserves of the market
+     */
+    address payable public reserveGuardian;
 }
 
 abstract contract CTokenInterface is CTokenStorage {
@@ -189,6 +194,14 @@ abstract contract CTokenInterface is CTokenStorage {
     event NewComptroller(
         ComptrollerInterface oldComptroller,
         ComptrollerInterface newComptroller
+    );
+
+    /**
+     * @notice Event emitted when reserve guardian is changed
+     */
+    event NewReserveGuardian(
+        address oldReserveGuardian,
+        address newReserveGuardian
     );
 
     /**
