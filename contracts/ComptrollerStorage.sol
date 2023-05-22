@@ -86,6 +86,12 @@ contract ComptrollerV1Storage is UnitrollerAdminStorage {
     // @notice Borrow caps enforced by borrowAllowed for each cToken address. Defaults to zero which corresponds to unlimited borrowing.
     mapping(address => uint256) public borrowCaps;
 
+    // @notice The supplyCapGuardian can set supplyCaps to any number for any market. Lowering the supply cap could disable supplying on the given market.
+    address public supplyCapGuardian;
+
+    // @notice Supply caps enforced by supplyAllowed for each cToken address. Defaults to zero which corresponds to unlimited supplying.
+    mapping(address => uint256) public supplyCaps;
+
     // @notice Reward Distributor to markets supply and borrow (including protocol token)
     address public rewardDistributor;
 }
