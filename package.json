@@ -5,6 +5,7 @@
     "main": "index.js",
     "scripts": {
         "test": "npx hardhat test",
+        "test:linea_goerli": "npx hardhat test --network linea_goerli",
         "coverage": "npx hardhat coverage",
         "compile": "npx hardhat compile",
         "build": "npm run compile && npx tsc",
@@ -21,6 +22,7 @@
         "@typechain/hardhat": "^6.1.4",
         "@types/chai": "^4.3.4",
         "@types/mocha": "^10.0.0",
+        "@uniswap/v3-core": "^1.0.1",
         "chai": "^4.3.7",
         "dotenv": "^16.0.3",
         "ethereum-waffle": "^3.4.4",

@@ -11,7 +11,7 @@ interface DeployFixture {
     comptroller: Contract;
 }
 
-describe.only("Basic Lens", function () {
+describe("Basic Lens", function () {
     let deployment: DeployFixture;
 
     const deployFixture = deployments.createFixture(

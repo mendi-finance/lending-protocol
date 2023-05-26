@@ -11,11 +11,10 @@ const func: DeployFunction = async ({
 
     let unitrollerDeploy = await get("Unitroller");
 
-    await deploy("ExternalRewardDistributor", {
+    await deploy("RewardDistributor", {
         from: deployer,
         log: true,
-        contract:
-            "contracts/ExternalRewardDistributor.sol:ExternalRewardDistributor",
+        contract: "contracts/RewardDistributor.sol:RewardDistributor",
         args: [],
         proxy: {
             proxyContract: "OpenZeppelinTransparentProxy",
