@@ -4,19 +4,12 @@ pragma solidity ^0.8.10;
 import "../EIP20Interface.sol";
 import "../PriceOracle.sol";
 
+import "../RewardDistributor.sol";
+
 interface ComptrollerLensInterface {
     function claimComp(address) external;
 
-    function getExternalRewardDistributorAddress()
-        external
-        view
-        returns (address);
-}
-
-interface ExternalRewardDistributorInterface {
-    function getRewardTokens() external view returns (address[] memory);
-
-    function rewardTokenExists(address token) external view returns (bool);
+    function rewardDistributor() external view returns (address);
 }
 
 contract BasicLens {
@@ -27,12 +20,10 @@ contract BasicLens {
         external
         returns (address[] memory rewardTokens, uint256[] memory accrued)
     {
-        address externalRewardDistributor = comptroller
-            .getExternalRewardDistributorAddress();
+        address externalRewardDistributor = comptroller.rewardDistributor();
 
-        rewardTokens = ExternalRewardDistributorInterface(
-            externalRewardDistributor
-        ).getRewardTokens();
+        rewardTokens = RewardDistributor(externalRewardDistributor)
+            .getRewardTokens();
 
         uint256[] memory beforeBalances = getBalancesInternal(
             rewardTokens,

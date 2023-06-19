@@ -2,7 +2,7 @@ import { task } from "hardhat/config";
 
 import priceFeedConfig from "../config/price-feeds";
 
-// npx hardhat deploy-price-oracle --network optimism
+// npx hardhat add-missing-markets --network $NETWORK
 
 task(
     "add-missing-markets",
@@ -37,8 +37,6 @@ task(
         //)
         .map(cTokenDeployment => cTokenDeployment.address);
 
-    const txPromises: any[] = [];
-
     for (const cToken of missingCTokens) {
         const cTokenContract = await ethers.getContractAt(
             "CErc20Immutable",
@@ -47,7 +45,7 @@ task(
         const symbol = await cTokenContract.symbol();
         const config = priceFeedConfig[symbol];
 
-        console.log("adding market", symbol);
+        console.log("configuring market", symbol);
 
         // set reserve factor
         const reserveFactor = await cTokenContract.reserveFactorMantissa();
@@ -56,7 +54,7 @@ task(
             const tx2 = await cTokenContract._setReserveFactor(
                 newReserveFactor
             );
-            txPromises.push(tx2.wait());
+            await tx2.wait();
 
             console.log(
                 "set reserve factor",
@@ -66,8 +64,13 @@ task(
         }
 
         // support market
-        const tx = await Comptroller._supportMarket(cToken);
-        txPromises.push(tx.wait());
+        const isListed = (await Comptroller.markets(cToken)).isListed;
+        if (!isListed) {
+            const tx = await Comptroller._supportMarket(cToken);
+            await tx.wait();
+        } else {
+            console.log("market already supported", symbol);
+        }
 
         // set collateral factor
         const collateralFactor = (await Comptroller.markets(cToken))
@@ -80,7 +83,7 @@ task(
                 cToken,
                 newCollateralFactor
             );
-            txPromises.push(tx3.wait());
+            await tx3.wait();
 
             console.log(
                 "set collateral factor",
@@ -89,6 +92,4 @@ task(
             );
         }
     }
-
-    await Promise.all(txPromises);
 });
