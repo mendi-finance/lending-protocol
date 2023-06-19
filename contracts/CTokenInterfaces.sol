@@ -28,7 +28,7 @@ contract CTokenStorage {
     uint8 public decimals;
 
     // Maximum borrow rate that can ever be applied (.0005% / block)
-    uint internal constant borrowRateMaxMantissa = 0.0005e16;
+    uint internal constant borrowRateMaxMantissa = 0.00004e16;
 
     // Maximum fraction of interest that can be set aside for reserves
     uint internal constant reserveFactorMaxMantissa = 1e18;
@@ -109,6 +109,11 @@ contract CTokenStorage {
      * @notice Share of seized collateral that is added to reserves
      */
     uint public constant protocolSeizeShareMantissa = 2.8e16; //2.8%
+
+    /**
+     * @notice The reserve guardian can reduce the reserves of the market
+     */
+    address payable public reserveGuardian;
 }
 
 abstract contract CTokenInterface is CTokenStorage {
@@ -189,6 +194,14 @@ abstract contract CTokenInterface is CTokenStorage {
     event NewComptroller(
         ComptrollerInterface oldComptroller,
         ComptrollerInterface newComptroller
+    );
+
+    /**
+     * @notice Event emitted when reserve guardian is changed
+     */
+    event NewReserveGuardian(
+        address oldReserveGuardian,
+        address newReserveGuardian
     );
 
     /**

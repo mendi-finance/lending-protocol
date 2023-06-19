@@ -5,8 +5,8 @@ import priceFeedConfig from "../config/price-feeds";
 // npx hardhat deploy-price-oracle --network kava
 
 task(
-    "deploy-price-oracle",
-    "Deploys a price oracle from all tokens in deployments"
+    "deploy-witnet-price-oracle",
+    "Deploys a witnet price oracle from all tokens in deployments"
 ).setAction(async (args, hre, runSuper) => {
     const {
         ethers,

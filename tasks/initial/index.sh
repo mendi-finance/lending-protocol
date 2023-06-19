@@ -1,14 +1,25 @@
 #!/bin/(shell)
 
-# NETWORK=localhost \
-# OWNER=0xFb59Ce8986943163F14C590755b29dB2998F2322 \
+# NETWORK=linea_goerli \
+# OWNER=0x67e633b2494f126c7e828B63b32E4d2667091bE4 \
 # sh ./tasks/initial/index.sh
 
 npx hardhat deploy --network $NETWORK
 
 npx hardhat deploy-ctoken \
 --network $NETWORK \
---underlying-address 0xfA9343C3897324496A05fC75abeD6bAC29f8A40f \
+--underlying-address 0x2C1b868d6596a18e32E61B901E4060C872647b6C \
+--underlying-decimals 18 \
+--underlying-name "Wrapped Ether" \
+--underlying-symbol "WETH" \
+--decimals 8 \
+--comptroller-key "Unitroller" \
+--interest-rate-model-key "MediumRateModel" \
+--owner $OWNER
+
+npx hardhat deploy-ctoken \
+--network $NETWORK \
+--underlying-address 0xf56dc6695cF1f5c364eDEbC7Dc7077ac9B586068 \
 --underlying-decimals 6 \
 --underlying-name "USD Coin" \
 --underlying-symbol "USDC" \
@@ -19,14 +30,15 @@ npx hardhat deploy-ctoken \
 
 npx hardhat deploy-ctoken \
 --network $NETWORK \
---underlying-address 0xB44a9B6905aF7c801311e8F4E76932ee959c663C \
+--underlying-address 0x1990BC6dfe2ef605Bfc08f5A23564dB75642Ad73 \
 --underlying-decimals 6 \
---underlying-name "Tether USD" \
+--underlying-name "USD Tether" \
 --underlying-symbol "USDT" \
 --decimals 8 \
 --comptroller-key "Unitroller" \
 --interest-rate-model-key "StableRateModel" \
 --owner $OWNER
+
 
 npx hardhat deploy-price-oracle --network $NETWORK
 

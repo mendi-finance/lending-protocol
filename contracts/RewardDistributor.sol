@@ -33,12 +33,12 @@ struct RewardAccountState {
 }
 
 /**
- * @title External Reward Distributor (version 1)
+ * @title Reward Distributor (version 1)
  * @author Sonne Finance
  * @notice This contract is used to distribute rewards to users for supplying and borrowing assets.
  * Each supply and borrow changing action from comptroller will trigger index update for each reward token.
  */
-contract ExternalRewardDistributor is
+contract RewardDistributor is
     Initializable,
     OwnableUpgradeable,
     ExponentialNoError
@@ -355,7 +355,7 @@ contract ExternalRewardDistributor is
         );
     }
 
-    function claim(address[] memory holders) public onlyComptroller {
+    function claim(address[] memory holders) public {
         for (uint256 i = 0; i < rewardTokens.length; i++) {
             claimInternal(rewardTokens[i], holders);
         }

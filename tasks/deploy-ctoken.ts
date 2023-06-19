@@ -47,16 +47,16 @@ task("deploy-ctoken", "Deploys a new ctoken")
         const { deployer } = await getNamedAccounts();
 
         const contractKey = `CErc20Immutable_${underlyingSymbol}`;
-        const soName = `Mare ${underlyingName}`;
-        const soSymbol = `ma${underlyingSymbol}`;
+        const soName = `Mendi ${underlyingName}`;
+        const soSymbol = `me${underlyingSymbol}`;
 
         let cToken;
 
         const comptrollerDeploy = await get(comptrollerKey);
         const interestRateModelDeploy = await get(interestRateModelKey);
-        // exchange rate should be 2 for mare
+
         const initialExchangeRateMantissa = ethers.utils.parseUnits(
-            "2",
+            "0.02",
             underlyingDecimals + 18 - decimals
         );
         console.log(initialExchangeRateMantissa.toString());

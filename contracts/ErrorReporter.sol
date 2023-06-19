@@ -121,6 +121,8 @@ contract TokenErrorReporter {
 
     error AddReservesFactorFreshCheck(uint256 actualAddAmount);
 
+    error SetReserveGuardianOwnerCheck();
+
     error ReduceReservesAdminCheck();
     error ReduceReservesFreshCheck();
     error ReduceReservesCashNotAvailable();

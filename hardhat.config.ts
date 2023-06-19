@@ -26,7 +26,6 @@ const config: HardhatUserConfig = {
     },
     networks: {
         hardhat: {
-            chainId: 2222,
             companionNetworks: {
                 mainnet: process.env.FORKING_NETWORK?.toLowerCase()!,
             },
@@ -40,7 +39,7 @@ const config: HardhatUserConfig = {
             gasPrice: 1000000000,
         },
         linea_goerli: {
-            chainId: 2222,
+            chainId: 59140,
             url: process.env.LINEA_GOERLI_RPC_URL,
             accounts: [process.env.LINEA_GOERLI_DEPLOYER!],
             verify: {

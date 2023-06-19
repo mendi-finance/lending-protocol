@@ -548,8 +548,13 @@ abstract contract CToken is
         emit Transfer(address(this), minter, mintTokens);
 
         /* We call the defense hook */
-        // unused function
-        // comptroller.mintVerify(address(this), minter, actualMintAmount, mintTokens);
+
+        comptroller.mintVerify(
+            address(this),
+            minter,
+            actualMintAmount,
+            mintTokens
+        );
     }
 
     /**
@@ -1246,6 +1251,30 @@ abstract contract CToken is
     }
 
     /**
+     * @notice Admin function to set new reserve guardian
+     * @param newReserveGuardian New reserve guardian address
+     * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
+     */
+    function _setReserveGuardian(
+        address payable newReserveGuardian
+    ) external returns (uint256) {
+        // Check caller is admin
+        if (msg.sender != admin) {
+            revert SetReserveGuardianOwnerCheck();
+        }
+
+        // Save current value, if any, for inclusion in log
+        address oldReserveGuardian = reserveGuardian;
+
+        // Set market's reserveGuardian to newReserveGuardian
+        reserveGuardian = newReserveGuardian;
+
+        emit NewReserveGuardian(oldReserveGuardian, newReserveGuardian);
+
+        return NO_ERROR;
+    }
+
+    /**
      * @notice Accrues interest and reduces reserves by transferring to admin
      * @param reduceAmount Amount of reduction to reserves
      * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
@@ -1271,7 +1300,7 @@ abstract contract CToken is
         uint256 totalReservesNew;
 
         // Check caller is admin
-        if (msg.sender != admin) {
+        if (msg.sender != admin || msg.sender != reserveGuardian) {
             revert ReduceReservesAdminCheck();
         }
 
@@ -1300,7 +1329,7 @@ abstract contract CToken is
         totalReserves = totalReservesNew;
 
         // doTransferOut reverts if anything goes wrong, since we can't be sure if side effects occurred.
-        doTransferOut(admin, reduceAmount);
+        doTransferOut(payable(msg.sender), reduceAmount);
 
         emit ReservesReduced(admin, reduceAmount, totalReservesNew);
 
