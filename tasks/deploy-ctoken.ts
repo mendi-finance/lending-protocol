@@ -2,7 +2,7 @@ import { task, types } from "hardhat/config";
 
 /**
  * npx hardhat deploy-ctoken \
- * --network kava \
+ * --network localhost \
  * --underlying-address 0xE3F5a90F9cb311505cd691a46596599aA1A0AD7D \
  * --underlying-decimals 18 \
  * --underlying-name "Multichain Ether" \
@@ -10,7 +10,8 @@ import { task, types } from "hardhat/config";
  * --decimals 8 \
  * --comptroller-key "Unitroller" \
  * --interest-rate-model-key "StableRateModel" \
- * --owner 0xfb59ce8986943163f14c590755b29db2998f2322
+ * --owner 0xfb59ce8986943163f14c590755b29db2998f2322 \
+ * --proxy true
  */
 
 task("deploy-ctoken", "Deploys a new ctoken")
@@ -27,6 +28,13 @@ task("deploy-ctoken", "Deploys a new ctoken")
     .addParam("comptrollerKey", "Key of the comptroller")
     .addParam("interestRateModelKey", "Key of the interest rate model")
     .addParam("owner", "Owner of the cToken")
+    .addParam(
+        "proxy",
+        "Deploys contract using default proxy",
+        false,
+        types.boolean,
+        true
+    )
     .setAction(async (args, hre, runSuper) => {
         const {
             underlyingAddress,
@@ -37,6 +45,7 @@ task("deploy-ctoken", "Deploys a new ctoken")
             comptrollerKey,
             interestRateModelKey,
             owner,
+            proxy,
         } = args;
         const {
             ethers,
@@ -46,15 +55,16 @@ task("deploy-ctoken", "Deploys a new ctoken")
 
         const { deployer } = await getNamedAccounts();
 
-        const contractKey = `CErc20Immutable_${underlyingSymbol}`;
-        const soName = `Mendi ${underlyingName}`;
-        const soSymbol = `me${underlyingSymbol}`;
+        const contractKeyPrefix = proxy
+            ? "CErc20Upgradable_"
+            : "CErc20Immutable_";
 
-        let cToken;
+        const contractKey = `${contractKeyPrefix}${underlyingSymbol}`;
+        const soName = `Mare ${underlyingName}`;
+        const soSymbol = `ma${underlyingSymbol}`;
 
         const comptrollerDeploy = await get(comptrollerKey);
         const interestRateModelDeploy = await get(interestRateModelKey);
-
         const initialExchangeRateMantissa = ethers.utils.parseUnits(
             "0.02",
             underlyingDecimals + 18 - decimals
@@ -62,22 +72,41 @@ task("deploy-ctoken", "Deploys a new ctoken")
         console.log(initialExchangeRateMantissa.toString());
 
         try {
-            cToken = await get(contractKey);
+            await get(contractKey);
         } catch {
-            cToken = await deploy(contractKey, {
-                from: deployer,
-                log: true,
-                contract: "contracts/CErc20Immutable.sol:CErc20Immutable",
-                args: [
-                    underlyingAddress,
-                    comptrollerDeploy.address,
-                    interestRateModelDeploy.address,
-                    initialExchangeRateMantissa,
-                    soName,
-                    soSymbol,
-                    decimals,
-                    owner,
-                ],
-            });
+            const args = [
+                underlyingAddress,
+                comptrollerDeploy.address,
+                interestRateModelDeploy.address,
+                initialExchangeRateMantissa,
+                soName,
+                soSymbol,
+                decimals,
+                owner,
+            ];
+
+            if (proxy) {
+                await deploy(contractKey, {
+                    from: deployer,
+                    log: true,
+                    contract: "contracts/CErc20Upgradable.sol:CErc20Upgradable",
+                    proxy: {
+                        proxyContract: "OpenZeppelinTransparentProxy",
+                        execute: {
+                            init: {
+                                methodName: "proxyInitialize",
+                                args: args,
+                            },
+                        },
+                    },
+                });
+            } else {
+                await deploy(contractKey, {
+                    from: deployer,
+                    log: true,
+                    contract: "contracts/CErc20Immutable.sol:CErc20Immutable",
+                    args: args,
+                });
+            }
         }
     });

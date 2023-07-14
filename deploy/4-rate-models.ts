@@ -55,7 +55,7 @@ const func: DeployFunction = async ({
     for (let key of Object.keys(modelDefinitions)) {
         const def = modelDefinitions[key];
         const existingDeploy = await getOrNull(def.name);
-        if (existingDeploy) return;
+        if (existingDeploy) continue;
 
         await deploy(def.name, {
             from: deployer,

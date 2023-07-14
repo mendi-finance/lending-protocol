@@ -38,14 +38,25 @@ const config: HardhatUserConfig = {
             autoImpersonate: true,
             gasPrice: 1000000000,
         },
+        linea: {
+            chainId: 59144,
+            url: process.env.LINEA_RPC_URL,
+            accounts: [process.env.LINEA_DEPLOYER!],
+            verify: {
+                etherscan: {
+                    apiUrl: "https://api.lineascan.build",
+                    apiKey: "8UVWD6QA7TJD517ZBJ222Y2GUNIMHDCHXE",
+                },
+            },
+        },
         linea_goerli: {
             chainId: 59140,
             url: process.env.LINEA_GOERLI_RPC_URL,
             accounts: [process.env.LINEA_GOERLI_DEPLOYER!],
             verify: {
                 etherscan: {
-                    apiUrl: "https://explorer.goerli.linea.build",
-                    apiKey: "abc",
+                    apiUrl: "https://api-testnet.lineascan.build",
+                    apiKey: "8UVWD6QA7TJD517ZBJ222Y2GUNIMHDCHXE",
                 },
             },
         },

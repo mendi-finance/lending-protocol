@@ -73,7 +73,7 @@ task(
         }
 
         // set collateral factor
-        const collateralFactor = (await Comptroller.markets(cToken))
+        /*const collateralFactor = (await Comptroller.markets(cToken))
             .collateralFactorMantissa;
         const newCollateralFactor = ethers.utils.parseEther(
             config.collateralFactor
@@ -90,6 +90,6 @@ task(
                 symbol,
                 newCollateralFactor.toString()
             );
-        }
+        }*/
     }
 });

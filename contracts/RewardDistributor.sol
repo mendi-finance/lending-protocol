@@ -46,10 +46,11 @@ contract RewardDistributor is
     event RewardAccrued(
         address indexed rewardToken,
         address indexed user,
-        uint256 amount
+        uint256 deltaAccrued,
+        uint256 totalAccrued
     );
 
-    event RewardDistributed(
+    event RewardGranted(
         address indexed rewardToken,
         address indexed user,
         uint256 amount
@@ -296,6 +297,13 @@ contract RewardDistributor is
             accountState.rewardAccrued,
             supplierDelta
         );
+
+        emit RewardAccrued(
+            rewardToken,
+            supplier,
+            supplierDelta,
+            accountState.rewardAccrued
+        );
     }
 
     function notifyBorrower(
@@ -353,6 +361,13 @@ contract RewardDistributor is
             accountState.rewardAccrued,
             borrowerDelta
         );
+
+        emit RewardAccrued(
+            rewardToken,
+            borrower,
+            borrowerDelta,
+            accountState.rewardAccrued
+        );
     }
 
     function claim(address[] memory holders) public {
@@ -409,6 +424,9 @@ contract RewardDistributor is
         uint256 remaining = EIP20Interface(token).balanceOf(address(this));
         if (amount > 0 && amount <= remaining) {
             EIP20Interface(token).transfer(user, amount);
+
+            emit RewardGranted(token, user, amount);
+
             return 0;
         }
         return amount;
