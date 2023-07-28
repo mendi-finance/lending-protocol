@@ -9,9 +9,7 @@ const setupFixture = deployments.createFixture(
         const companionDeployments = companionNetworks["mainnet"].deployments;
         const [deployer] = await ethers.getSigners();
 
-        const comptrollerImplDeploy = await deployments.get(
-            "ComptrollerImplV2"
-        );
+        const comptrollerImplDeploy = await deployments.get("Comptroller");
 
         const unitrollerDeploy = await companionDeployments.get("Unitroller");
         // set storage to new comptroller deploy

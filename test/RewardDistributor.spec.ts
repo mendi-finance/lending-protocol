@@ -4,32 +4,26 @@ import { expect } from "chai";
 import { setupFixture } from "./_fixtures";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
-const mareAddress = "0xd86C8d4279CCaFbec840c782BcC50D201f277419";
-const wkavaAddress = "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b";
+const mendiAddress = "0xd86C8d4279CCaFbec840c782BcC50D201f277419";
+const wethAddress = "0xc86c7C0eFbd6A49B35E8714C5f59D99De09A225b";
 
 const lenderAddress = "0x85591bFABB18Be044fA98D72F7093469C588483C";
-const wkavaWhaleAddress = "0x0a4A04e766E9475dC044FBF079aFa6111BcF1f56";
+const wethWhaleAddress = "0x0a4A04e766E9475dC044FBF079aFa6111BcF1f56";
 
 const markets = [
-    "0x58333b7D0644b52E0e56cC3803CA94aF9e0B52C3",
-    "0x0B6c2a9d4d739778dF6cD1cf815754BD1438063c",
-    "0x066C98E48238e8D77006a5fA14EC3B080Fd2848d",
-    "0x92e17FD2DA50775FBD423702E4717cCD7FB2A6BB",
-    "0x24149e2D0D3F79EBb7Fc464b09e3628dE395b39D",
+    "0x4E4e3EbB5d55787885a871F3D9b23638A68E3681",
+    "0x3ED88159612B029a21174250A9DC03366b1119Ae",
+    "0x97799F2Fd7F7Bbb66050cac3774C673e5f5A52af",
 ];
 const supplySpeeds = [
     "15860055827886700",
     "15860055827886700",
     "12976409313725500",
-    "15860055827886700",
-    "8650939542483660",
 ];
 const borrowSpeeds = [
     "111026007625272000",
     "111026007625272000",
     "90839460784313700",
-    "111026007625272000",
-    "60559640522875800",
 ];
 
 const MANTISSA = ethers.constants.WeiPerEther;
@@ -39,11 +33,11 @@ describe("RewardDistributor", () => {
     let cTokens: { [key: string]: Contract };
     let rewardDistributor: Contract;
 
-    let mareToken: Contract;
-    let wkavaToken: Contract;
+    let mendiToken: Contract;
+    let wethToken: Contract;
 
     let lender: SignerWithAddress;
-    let wkavaWhale: SignerWithAddress;
+    let wethWhale: SignerWithAddress;
 
     let rewardStart: BigNumber;
 
@@ -56,10 +50,10 @@ describe("RewardDistributor", () => {
         const currentBlock = await comptroller.getBlockNumber();
         rewardStart = currentBlock;
 
-        await rewardDistributor._whitelistToken(wkavaAddress);
+        await rewardDistributor._whitelistToken(wethAddress);
 
         await rewardDistributor._updateRewardSpeeds(
-            wkavaAddress,
+            wethAddress,
             markets,
             supplySpeeds,
             borrowSpeeds
@@ -71,16 +65,16 @@ describe("RewardDistributor", () => {
         ]);
         lender = await ethers.getSigner(lenderAddress);
         await ethers.provider.send("hardhat_impersonateAccount", [
-            wkavaWhaleAddress,
+            wethWhaleAddress,
         ]);
-        wkavaWhale = await ethers.getSigner(wkavaWhaleAddress);
+        wethWhale = await ethers.getSigner(wethWhaleAddress);
 
         // tokens
-        mareToken = await ethers.getContractAt("EIP20Interface", mareAddress);
-        wkavaToken = await ethers.getContractAt("EIP20Interface", wkavaAddress);
+        mendiToken = await ethers.getContractAt("EIP20Interface", mendiAddress);
+        wethToken = await ethers.getContractAt("EIP20Interface", wethAddress);
 
-        await wkavaToken
-            .connect(wkavaWhale)
+        await wethToken
+            .connect(wethWhale)
             .transfer(
                 rewardDistributor.address,
                 ethers.utils.parseEther("10000")
@@ -93,14 +87,14 @@ describe("RewardDistributor", () => {
 
     describe("Admin", () => {
         it("Should whitelist a token", async () => {
-            await expect(rewardDistributor._whitelistToken(mareAddress)).to.not
+            await expect(rewardDistributor._whitelistToken(mendiAddress)).to.not
                 .reverted;
         });
 
         it("Should revert non admin whitelist", async () => {
             const [deployer, user] = await ethers.getSigners();
             await expect(
-                rewardDistributor.connect(user)._whitelistToken(mareAddress)
+                rewardDistributor.connect(user)._whitelistToken(mendiAddress)
             ).to.revertedWith("Ownable: caller is not the owner");
         });
 
@@ -113,11 +107,11 @@ describe("RewardDistributor", () => {
         });
 
         it("Should revert whitelist a token twice", async () => {
-            await expect(rewardDistributor._whitelistToken(mareAddress)).to.not
+            await expect(rewardDistributor._whitelistToken(mendiAddress)).to.not
                 .reverted;
 
             await expect(
-                rewardDistributor._whitelistToken(mareAddress)
+                rewardDistributor._whitelistToken(mendiAddress)
             ).to.revertedWith("RewardDistributor: reward token already exists");
         });
 
@@ -129,7 +123,7 @@ describe("RewardDistributor", () => {
 
             await expect(
                 rewardDistributor._updateRewardSpeeds(
-                    wkavaAddress,
+                    wethAddress,
                     markets.slice(0, 2),
                     [supplyReward1, supplyReward2],
                     [borrowReward1, borrowReward2]
@@ -137,7 +131,7 @@ describe("RewardDistributor", () => {
             ).to.not.reverted;
 
             const marketState = await rewardDistributor.rewardMarketState(
-                wkavaAddress,
+                wethAddress,
                 markets[0]
             );
             expect(marketState.supplySpeed).to.be.equal(supplyReward1);
@@ -150,7 +144,7 @@ describe("RewardDistributor", () => {
                 rewardDistributor
                     .connect(user)
                     ._updateRewardSpeeds(
-                        wkavaAddress,
+                        wethAddress,
                         [
                             "0x58333b7D0644b52E0e56cC3803CA94aF9e0B52C3",
                             "0x0B6c2a9d4d739778dF6cD1cf815754BD1438063c",
@@ -164,7 +158,7 @@ describe("RewardDistributor", () => {
         it("Should revert update reward speeds incorrect input", async () => {
             await expect(
                 rewardDistributor._updateRewardSpeeds(
-                    wkavaAddress,
+                    wethAddress,
                     [
                         "0x58333b7D0644b52E0e56cC3803CA94aF9e0B52C3",
                         "0x0B6c2a9d4d739778dF6cD1cf815754BD1438063c",
@@ -178,7 +172,7 @@ describe("RewardDistributor", () => {
 
             await expect(
                 rewardDistributor._updateRewardSpeeds(
-                    wkavaAddress,
+                    wethAddress,
                     ["0x5569b83de187375d43FBd747598bfe64fC8f6436"],
                     ["15860055827886700", "12976409313725500"],
                     ["111026007625272000"]
@@ -189,7 +183,7 @@ describe("RewardDistributor", () => {
 
             await expect(
                 rewardDistributor._updateRewardSpeeds(
-                    mareAddress,
+                    mendiAddress,
                     [
                         "0x58333b7D0644b52E0e56cC3803CA94aF9e0B52C3",
                         "0x0B6c2a9d4d739778dF6cD1cf815754BD1438063c",
@@ -205,13 +199,13 @@ describe("RewardDistributor", () => {
             await expect(
                 rewardDistributor
                     .connect(deployer)
-                    ._grantReward(wkavaAddress, deployer.address, 1000)
+                    ._grantReward(wethAddress, deployer.address, 1000)
             ).to.not.reverted;
 
             await expect(
                 rewardDistributor
                     .connect(user)
-                    ._grantReward(wkavaAddress, user.address, 1000)
+                    ._grantReward(wethAddress, user.address, 1000)
             ).to.revertedWith("Ownable: caller is not the owner");
 
             await expect(
@@ -228,7 +222,7 @@ describe("RewardDistributor", () => {
             await expect(
                 rewardDistributor
                     .connect(user)
-                    ._grantReward(wkavaAddress, deployer.address, 1000)
+                    ._grantReward(wethAddress, deployer.address, 1000)
             ).to.revertedWith("Ownable: caller is not the owner");
         });
     });
@@ -271,7 +265,7 @@ describe("RewardDistributor", () => {
         );
 
         await rewardDistributor._updateRewardSpeeds(
-            wkavaAddress,
+            wethAddress,
             [markets[1]],
             [0],
             ["222052015250544000"]
@@ -298,16 +292,16 @@ describe("RewardDistributor", () => {
                         userMarkets
                     );
             },
-            [mareAddress, wkavaAddress],
+            [mendiAddress, wethAddress],
             lenderAddress
         );
 
-        const expectedWKavaReward = firstRewards.add(secondRewards);
-        const diffMare = diffBalances[0];
-        const diffWKava = diffBalances[1];
+        const expectedWEthReward = firstRewards.add(secondRewards);
+        const diffMendi = diffBalances[0];
+        const diffWEth = diffBalances[1];
 
-        expect(diffWKava).to.closeTo(
-            expectedWKavaReward,
+        expect(diffWEth).to.closeTo(
+            expectedWEthReward,
             ethers.utils.parseUnits("1", 9)
         );
     });
@@ -318,7 +312,7 @@ const calculateRewards = async (start, end, comptroller, rewardDistributor) => {
     const marketStates = await Promise.all(
         positions.map(position =>
             rewardDistributor.rewardMarketState(
-                wkavaAddress,
+                wethAddress,
                 position.cToken.address
             )
         )

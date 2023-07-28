@@ -1,6 +1,7 @@
 import { task } from "hardhat/config";
 
-import priceFeedConfig from "../config/price-feeds";
+import priceFeedConfigs from "../config/price-feeds";
+import { filterCTokenDeployments } from "./_utils";
 
 // npx hardhat deploy-price-oracle --network kava
 
@@ -9,23 +10,18 @@ task(
     "Deploys a witnet price oracle from all tokens in deployments"
 ).setAction(async (args, hre, runSuper) => {
     const {
+        network,
         ethers,
         getNamedAccounts,
         deployments: { deploy, getOrNull, all },
     } = hre;
 
+    const priceFeedConfig = priceFeedConfigs[network.name];
+
     const { deployer } = await getNamedAccounts();
 
     const allDeployments = await all();
-    const cTokenDeployments = Object.entries(allDeployments)
-        .filter(
-            ([key, value]) =>
-                key.startsWith("CErc20Immutable_") ||
-                (key.startsWith("CErc20Upgradable_") &&
-                    !key.endsWith("_Proxy") &&
-                    !key.endsWith("_Implementation"))
-        )
-        .map(([key, value]) => value);
+    const cTokenDeployments = filterCTokenDeployments(allDeployments);
 
     const cTickers = cTokenDeployments.map((cTokenDeployment: any) =>
         !!cTokenDeployment.implementation

@@ -44,8 +44,8 @@ const config: HardhatUserConfig = {
             accounts: [process.env.LINEA_DEPLOYER!],
             verify: {
                 etherscan: {
-                    apiUrl: "https://api.lineascan.build",
-                    apiKey: "8UVWD6QA7TJD517ZBJ222Y2GUNIMHDCHXE",
+                    apiUrl: process.env.LINEA_EXPLORER_API_URL,
+                    apiKey: process.env.LINEA_EXPLORER_API_KEY,
                 },
             },
         },
@@ -55,8 +55,19 @@ const config: HardhatUserConfig = {
             accounts: [process.env.LINEA_GOERLI_DEPLOYER!],
             verify: {
                 etherscan: {
-                    apiUrl: "https://api-testnet.lineascan.build",
-                    apiKey: "8UVWD6QA7TJD517ZBJ222Y2GUNIMHDCHXE",
+                    apiUrl: process.env.LINEA_GOERLI_EXPLORER_API_URL,
+                    apiKey: process.env.LINEA_GOERLI_EXPLORER_API_KEY,
+                },
+            },
+        },
+        omni_testnet: {
+            chainId: 165,
+            url: process.env.OMNI_TESTNET_RPC_URL,
+            accounts: [process.env.OMNI_TESTNET_DEPLOYER!],
+            verify: {
+                etherscan: {
+                    apiUrl: process.env.OMNI_TESTNET_EXPLORER_API_URL,
+                    apiKey: process.env.OMNI_TESTNET_EXPLORER_API_KEY,
                 },
             },
         },

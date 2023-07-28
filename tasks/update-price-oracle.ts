@@ -1,6 +1,6 @@
 import { task } from "hardhat/config";
 
-import priceFeedConfig from "../config/price-feeds";
+import priceFeedConfigs from "../config/price-feeds";
 
 // npx hardhat deploy-price-oracle --network optimism
 
@@ -8,10 +8,13 @@ task("update-price-oracle", "Updates the price oracle of the comptroller")
     .addParam("priceOracleKey", "The key of the price oracle to use")
     .setAction(async (args, hre, runSuper) => {
         const {
+            network,
             ethers,
             getNamedAccounts,
             deployments: { deploy, get, all },
         } = hre;
+
+        const priceFeedConfig = priceFeedConfigs[network.name];
 
         console.log("running task: update-price-oracle");
 

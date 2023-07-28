@@ -1300,7 +1300,8 @@ abstract contract CToken is
         uint256 totalReservesNew;
 
         // Check caller is admin
-        if (msg.sender != admin || msg.sender != reserveGuardian) {
+        // TODO: Fix
+        if (msg.sender != admin && msg.sender != reserveGuardian) {
             revert ReduceReservesAdminCheck();
         }
 

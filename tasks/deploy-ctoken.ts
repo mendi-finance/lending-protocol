@@ -2,15 +2,15 @@ import { task, types } from "hardhat/config";
 
 /**
  * npx hardhat deploy-ctoken \
- * --network localhost \
- * --underlying-address 0xE3F5a90F9cb311505cd691a46596599aA1A0AD7D \
+ * --network omni_testnet \
+ * --underlying-address 0x54eBBdBb7C800AFF0aFAA9eC3FA056Ebd0E77285 \
  * --underlying-decimals 18 \
- * --underlying-name "Multichain Ether" \
- * --underlying-symbol "ETH" \
+ * --underlying-name "USDT" \
+ * --underlying-symbol "USDT" \
  * --decimals 8 \
  * --comptroller-key "Unitroller" \
- * --interest-rate-model-key "StableRateModel" \
- * --owner 0xfb59ce8986943163f14c590755b29db2998f2322 \
+ * --interest-rate-model-key "VolatileRateModel" \
+ * --owner 0x67e633b2494f126c7e828B63b32E4d2667091bE4 \
  * --proxy true
  */
 
@@ -60,8 +60,8 @@ task("deploy-ctoken", "Deploys a new ctoken")
             : "CErc20Immutable_";
 
         const contractKey = `${contractKeyPrefix}${underlyingSymbol}`;
-        const soName = `Mare ${underlyingName}`;
-        const soSymbol = `ma${underlyingSymbol}`;
+        const soName = `Mendi ${underlyingName}`;
+        const soSymbol = `me${underlyingSymbol}`;
 
         const comptrollerDeploy = await get(comptrollerKey);
         const interestRateModelDeploy = await get(interestRateModelKey);
