@@ -1,6 +1,6 @@
 import { task } from "hardhat/config";
 
-// npx hardhat deploy-comptroller --network omni_testnet
+// npx hardhat deploy-comptroller --network $NETWORK
 
 task("deploy-comptroller", "Deploys a comptroller contract").setAction(
     async (args, hre, runSuper) => {

@@ -1,6 +1,6 @@
 import { task } from "hardhat/config";
 
-// npx hardhat deploy-simple-price-oracle --network omni_testnet
+// npx hardhat deploy-simple-price-oracle --network linea
 
 task("deploy-simple-price-oracle", "Deploys a simple price oracle").setAction(
     async (args, hre, runSuper) => {
