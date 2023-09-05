@@ -33,6 +33,7 @@
         "ts-node": "^10.9.1"
     },
     "dependencies": {
+        "@pythnetwork/pyth-sdk-solidity": "^2.2.1",
         "witnet-solidity-bridge": "^0.6.1"
     }
 }

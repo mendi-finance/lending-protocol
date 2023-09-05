@@ -1,5 +1,6 @@
 import "./deploy-comptroller";
 import "./deploy-ctoken";
+import "./deploy-pyth-price-oracle";
 import "./deploy-simple-price-oracle";
 import "./deploy-witnet-price-oracle";
 import "./support-markets";
