@@ -53,8 +53,8 @@ const setupFixture = deployments.createFixture(
 
 type PythOracleFixtureOutput = [Contract];
 const pythOracleFixture = deployments.createFixture<
-    any,
-    PythOracleFixtureOutput
+    PythOracleFixtureOutput,
+    any
 >(async ({ deployments, companionNetworks }, options) => {
     await deployments.fixture(undefined, {
         keepExistingDeployments: true,
