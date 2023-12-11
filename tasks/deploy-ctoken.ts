@@ -2,15 +2,15 @@ import { task, types } from "hardhat/config";
 
 /**
  * npx hardhat deploy-ctoken \
- * --network omni_testnet \
- * --underlying-address 0x54eBBdBb7C800AFF0aFAA9eC3FA056Ebd0E77285 \
+ * --network linea \
+ * --underlying-address 0xB5beDd42000b71FddE22D3eE8a79Bd49A568fC8F \
  * --underlying-decimals 18 \
- * --underlying-name "USDT" \
- * --underlying-symbol "USDT" \
+ * --underlying-name "Wrapped liquid staked Ether 2.0" \
+ * --underlying-symbol "wstETH" \
  * --decimals 8 \
  * --comptroller-key "Unitroller" \
  * --interest-rate-model-key "VolatileRateModel" \
- * --owner 0x67e633b2494f126c7e828B63b32E4d2667091bE4 \
+ * --owner 0x6C81d7Fe6072CE519c1A5B966d62545F07B26902 \
  * --proxy true
  */
 
@@ -91,6 +91,7 @@ task("deploy-ctoken", "Deploys a new ctoken")
                     log: true,
                     contract: "contracts/CErc20Upgradable.sol:CErc20Upgradable",
                     proxy: {
+                        owner: owner,
                         proxyContract: "OpenZeppelinTransparentProxy",
                         execute: {
                             init: {

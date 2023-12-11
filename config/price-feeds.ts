@@ -39,6 +39,11 @@ export default {
                 "0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43",
             baseUnit: "100000000",
         },
+        mewstETH: {
+            source: "chainlink",
+            priceFeed: "0x8ece1aba32716fdde8d6482bfd88e9a0ee01f565",
+            baseUnit: "1000000000000000000",
+        },
     },
     linea_goerli: {
         meUSDC: {

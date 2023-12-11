@@ -534,6 +534,13 @@ abstract contract CToken is
 
         uint256 mintTokens = div_(actualMintAmount, exchangeRate);
 
+        // avoid exchangeRate manipulation
+        if (totalSupply == 0) {
+            totalSupply = 1000;
+            accountTokens[address(0)] = 1000;
+            mintTokens -= 1000;
+        }
+
         /*
          * We calculate the new total supply of cTokens and minter token balance, checking for overflow:
          *  totalSupplyNew = totalSupply + mintTokens

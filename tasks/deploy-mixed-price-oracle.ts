@@ -3,11 +3,11 @@ import { task } from "hardhat/config";
 import priceFeedConfigs from "../config/price-feeds";
 import { filterCTokenDeployments } from "./_utils";
 
-// npx hardhat deploy-pyth-price-oracle --network linea
+// npx hardhat deploy-mixed-price-oracle --network linea
 
 task(
-    "deploy-pyth-price-oracle",
-    "Deploys a pyth price oracle from all tokens in deployments"
+    "deploy-mixed-price-oracle",
+    "Deploys a mixed price oracle from all tokens in deployments"
 ).setAction(async (args, hre, runSuper) => {
     const {
         network,
@@ -32,7 +32,13 @@ task(
     const priceFeeds = cTickers.map(cTicker => {
         const soToken = priceFeedConfig[cTicker];
         if (!soToken) throw new Error(`No Ctoken found for ${cTicker}`);
-        return soToken.priceFeed;
+
+        if (soToken.source == "pyth") return soToken.priceFeed;
+        console.log(soToken.priceFeed);
+        if (soToken.source == "chainlink")
+            return ethers.utils.hexZeroPad(soToken.priceFeed, 32);
+
+        throw new Error(`Undefined source: ${soToken.source}`);
     });
 
     const baseUnits = cTickers.map(cTicker => {
@@ -44,10 +50,10 @@ task(
     console.log(priceFeeds);
     console.log(baseUnits);
 
-    const oracle = await deploy("PythPriceOracle", {
+    const oracle = await deploy("MixedPriceOracle", {
         from: deployer,
         log: true,
-        contract: "contracts/PriceOracle/PythPriceOracle.sol:PythPriceOracle",
+        contract: "contracts/PriceOracle/MixedPriceOracle.sol:MixedPriceOracle",
         args: [cTickers, priceFeeds, baseUnits],
     });
 });
