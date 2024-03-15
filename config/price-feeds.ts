@@ -44,6 +44,11 @@ export default {
             priceFeed: "0x8ece1aba32716fdde8d6482bfd88e9a0ee01f565",
             baseUnit: "1000000000000000000",
         },
+        meezETH: {
+            source: "chainlink",
+            priceFeed: "0xAeF45ceDf76CA61DF495646c25b1a2015A596835",
+            baseUnit: "1000000000000000000"
+        }
     },
     linea_goerli: {
         meUSDC: {
