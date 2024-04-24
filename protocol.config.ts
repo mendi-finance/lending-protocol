@@ -4,49 +4,45 @@ const config: ProtocolConfig = {
     linea: {
         markets: {
             meWETH: {
-                source: "pyth",
-                priceFeed:
-                    "0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
+                source: "chainlink",
+                priceFeed: "0x3c6Cd9Cc7c7a4c2Cf5a82734CD249D7D593354dA",
                 baseUnit: "1000000000000000000",
                 underlyingDecimals: 18,
             },
             meUSDC: {
-                source: "pyth",
-                priceFeed:
-                    "0xeaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a",
+                source: "chainlink",
+                priceFeed: "0xAADAa473C1bDF7317ec07c915680Af29DeBfdCb5",
                 baseUnit: "1000000",
                 underlyingDecimals: 6,
             },
             meUSDT: {
-                source: "pyth",
-                priceFeed:
-                    "0x2b89b9dc8fdf9f34709a5b106b472f0f39bb6ca9ce04b0fd7f2e971688e2e53b",
+                source: "chainlink",
+                priceFeed: "0xefCA2bbe0EdD0E22b2e0d2F8248E99F4bEf4A7dB",
                 baseUnit: "1000000",
                 underlyingDecimals: 6,
             },
             meDAI: {
-                source: "pyth",
-                priceFeed:
-                    "0xb0948a5e5313200c632b51bb5ca32f6de0d36e9950a942d19751e833f70dabfd",
+                source: "chainlink",
+                priceFeed: "0x5133D67c38AFbdd02997c14Abd8d83676B4e309A",
                 baseUnit: "1000000000000000000",
                 underlyingDecimals: 18,
             },
             meWBTC: {
-                source: "pyth",
-                priceFeed:
-                    "0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43",
+                source: "chainlink",
+                priceFeed: "0x7A99092816C8BD5ec8ba229e3a6E6Da1E628E1F9",
                 baseUnit: "100000000",
                 underlyingDecimals: 8,
             },
             mewstETH: {
                 source: "chainlink",
-                priceFeed: "0x8ece1aba32716fdde8d6482bfd88e9a0ee01f565",
+                priceFeed: "0x8eCE1AbA32716FdDe8D6482bfd88E9a0ee01f565",
                 baseUnit: "1000000000000000000",
                 underlyingDecimals: 18,
             },
             meezETH: {
                 source: "chainlink",
-                priceFeed: "0xAeF45ceDf76CA61DF495646c25b1a2015A596835",
+                priceFeed: "0xB1d9A4Fe9331E28C5588B63343BF064A397aadB8",
+                // priceFeed: 0xAeF45ceDf76CA61DF495646c25b1a2015A596835 // api3
                 baseUnit: "1000000000000000000",
                 underlyingDecimals: 18,
                 toSymbol: "meWETH",
