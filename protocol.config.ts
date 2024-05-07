@@ -47,6 +47,13 @@ const config: ProtocolConfig = {
                 underlyingDecimals: 18,
                 toSymbol: "meWETH",
             },
+            meweETH: {
+                source: "chainlink",
+                priceFeed: "0x1FBc7d24654b10c71fd74d3730d9Df17836181EF",
+                baseUnit: "1000000000000000000",
+                underlyingDecimals: 18,
+                toSymbol: "meWETH",
+            },
         },
     },
 };

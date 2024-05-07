@@ -3,10 +3,10 @@ import { task, types } from "hardhat/config";
 /**
  * npx hardhat deploy-ctoken \
  * --network linea \
- * --underlying-address 0x2416092f143378750bb29b79ed961ab195cceea5 \
+ * --underlying-address 0x1Bf74C010E6320bab11e2e5A532b5AC15e0b8aA6 \
  * --underlying-decimals 18 \
- * --underlying-name "Renzo Restaked ETH" \
- * --underlying-symbol "ezETH" \
+ * --underlying-name "Wrapped eETH" \
+ * --underlying-symbol "weETH" \
  * --decimals 8 \
  * --comptroller-key "Unitroller" \
  * --interest-rate-model-key "VolatileRateModel" \
