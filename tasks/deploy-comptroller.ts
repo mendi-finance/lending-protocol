@@ -4,6 +4,8 @@ import { task } from "hardhat/config";
 
 task("deploy-comptroller", "Deploys a comptroller contract").setAction(
     async (args, hre, runSuper) => {
+        console.log("running task: deploy-comptroller");
+        
         const {
             ethers,
             getNamedAccounts,

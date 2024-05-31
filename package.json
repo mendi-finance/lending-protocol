@@ -6,6 +6,7 @@
     "scripts": {
         "test": "npx hardhat test",
         "test:linea_goerli": "npx hardhat test --network linea_goerli",
+        "test:linea_sepolia": "npx hardhat test --network linea_sepolia",
         "coverage": "npx hardhat coverage",
         "compile": "npx hardhat compile",
         "build": "npm run compile && npx tsc",
