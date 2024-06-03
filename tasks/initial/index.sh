@@ -39,3 +39,5 @@ npx hardhat deploy-simple-price-oracle --network $NETWORK
 npx hardhat update-price-oracle --network $NETWORK --price-oracle-key "SimplePriceOracle"
 
 npx hardhat support-markets --network $NETWORK
+
+npx hardhat etherscan-verify --network $NETWORK
