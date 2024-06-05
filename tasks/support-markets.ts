@@ -9,6 +9,8 @@ task(
     "support-markets",
     "Supports missing markets to the comptroller"
 ).setAction(async (args, hre, runSuper) => {
+    console.log("running task: support-markets");
+
     const {
         network,
         ethers,
@@ -38,6 +40,9 @@ task(
         .map(cTokenDeployment => cTokenDeployment.address);
 
     const txPromises: any[] = [];
+
+    console.log("Existing cTokens: ", existingCTokens);
+    console.log("Missing cTokens: ", missingCTokens);
 
     for (const cToken of missingCTokens) {
         const cTokenContract = await ethers.getContractAt(

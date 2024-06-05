@@ -60,6 +60,17 @@ const config: HardhatUserConfig = {
                 },
             },
         },
+        linea_sepolia: {
+            chainId: 59141,
+            url: process.env.LINEA_SEPOLIA_RPC_URL,
+            accounts: [process.env.LINEA_SEPOLIA_DEPLOYER!],
+            verify: {
+                etherscan: {
+                    apiUrl: process.env.LINEA_SEPOLIA_EXPLORER_API_URL,
+                    apiKey: process.env.LINEA_SEPOLIA_EXPLORER_API_KEY,
+                },
+            },
+        },
         omni_testnet: {
             chainId: 165,
             url: process.env.OMNI_TESTNET_RPC_URL,

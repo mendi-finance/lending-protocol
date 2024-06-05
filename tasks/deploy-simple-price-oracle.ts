@@ -4,6 +4,7 @@ import { task } from "hardhat/config";
 
 task("deploy-simple-price-oracle", "Deploys a simple price oracle").setAction(
     async (args, hre, runSuper) => {
+        console.log("running task: deploy-simple-price-oracle");
         const {
             ethers,
             getNamedAccounts,

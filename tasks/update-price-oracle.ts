@@ -7,6 +7,8 @@ import priceFeedConfigs from "../config/price-feeds";
 task("update-price-oracle", "Updates the price oracle of the comptroller")
     .addParam("priceOracleKey", "The key of the price oracle to use")
     .setAction(async (args, hre, runSuper) => {
+        console.log("running task: update-price-oracle");
+        
         const {
             network,
             ethers,
@@ -15,8 +17,6 @@ task("update-price-oracle", "Updates the price oracle of the comptroller")
         } = hre;
 
         const priceFeedConfig = priceFeedConfigs[network.name];
-
-        console.log("running task: update-price-oracle");
 
         const ComptrollerProxy = await ethers.getContract("Unitroller");
         const Comptroller = await ethers.getContractAt(

@@ -54,6 +54,7 @@ task("deploy-ctoken", "Deploys a new ctoken")
         } = hre;
 
         const { deployer } = await getNamedAccounts();
+        console.log("Deployer: ", deployer);
 
         const contractKeyPrefix = proxy
             ? "CErc20Upgradable_"
@@ -69,7 +70,7 @@ task("deploy-ctoken", "Deploys a new ctoken")
             "0.02",
             underlyingDecimals + 18 - decimals
         );
-        console.log(initialExchangeRateMantissa.toString());
+        console.log(contractKey);
 
         try {
             await get(contractKey);
@@ -86,6 +87,7 @@ task("deploy-ctoken", "Deploys a new ctoken")
             ];
 
             if (proxy) {
+                console.log("Deploying proxy...");
                 await deploy(contractKey, {
                     from: deployer,
                     log: true,
@@ -101,6 +103,7 @@ task("deploy-ctoken", "Deploys a new ctoken")
                         },
                     },
                 });
+                console.log("Proxy deployed");
             } else {
                 await deploy(contractKey, {
                     from: deployer,
