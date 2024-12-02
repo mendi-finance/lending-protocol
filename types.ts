@@ -11,7 +11,7 @@ export type ProtocolNetworkConfig = {
 };
 
 export type MarketConfig = {
-    source: "chainlink" | "pyth";
+    source: "chainlink";
     priceFeed: `0x${string}`;
     baseUnit: `1${string}`;
     underlyingDecimals: number;
