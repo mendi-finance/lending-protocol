@@ -3,13 +3,13 @@ import { task, types } from "hardhat/config";
 /**
  * npx hardhat deploy-ctoken \
  * --network linea \
- * --underlying-address 0x1Bf74C010E6320bab11e2e5A532b5AC15e0b8aA6 \
+ * --underlying-address 0xd2671165570f41bbb3b0097893300b6eb6101e6c \
  * --underlying-decimals 18 \
- * --underlying-name "Wrapped eETH" \
- * --underlying-symbol "weETH" \
+ * --underlying-name "rsETHWrapper" \
+ * --underlying-symbol "wrsETH" \
  * --decimals 8 \
  * --comptroller-key "Unitroller" \
- * --interest-rate-model-key "VolatileRateModel" \
+ * --interest-rate-model-key "MediumRateModel" \
  * --owner 0x6C81d7Fe6072CE519c1A5B966d62545F07B26902 \
  * --proxy true
  */

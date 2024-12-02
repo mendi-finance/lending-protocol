@@ -41,11 +41,10 @@ const config: ProtocolConfig = {
             },
             meezETH: {
                 source: "chainlink",
-                priceFeed: "0xB1d9A4Fe9331E28C5588B63343BF064A397aadB8",
-                // priceFeed: 0xAeF45ceDf76CA61DF495646c25b1a2015A596835 // api3
+                priceFeed: "0xD707bD88A6AAe8174C1447af4C746D55676C84BA",
                 baseUnit: "1000000000000000000",
                 underlyingDecimals: 18,
-                toSymbol: "meWETH",
+                toSymbol: "meWETH_api3",
             },
             meweETH: {
                 source: "chainlink",
@@ -53,6 +52,19 @@ const config: ProtocolConfig = {
                 baseUnit: "1000000000000000000",
                 underlyingDecimals: 18,
                 toSymbol: "meWETH",
+            },
+            mewrsETH: {
+                source: "chainlink",
+                priceFeed: "0x6feCd2f4798D37fBe64BFDe1eBeCaE3B3fB1Ab9B",
+                baseUnit: "1000000000000000000",
+                underlyingDecimals: 18,
+                toSymbol: "meWETH",
+            },
+            meWETH_api3: {
+                source: "chainlink",
+                priceFeed: "0x14D8CA4d05cfd1EA4739AbAB06b28D8dC7C6d6cA",
+                baseUnit: "1000000000000000000",
+                underlyingDecimals: 18,
             },
         },
     },
