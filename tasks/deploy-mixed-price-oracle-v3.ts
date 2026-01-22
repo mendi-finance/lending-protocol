@@ -48,7 +48,7 @@ task(
     var tickers = Object.keys(priceConfig);
     var configs = Object.values(priceConfig);
 
-    const oracle = await deploy("MixedPriceOracleV2", {
+    const oracle = await deploy("MixedPriceOracleV3", {
         from: deployer,
         log: true,
         contract:

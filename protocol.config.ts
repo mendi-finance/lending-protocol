@@ -5,7 +5,7 @@ const config: ProtocolConfig = {
         markets: {
             meWETH: {
                 source: "chainlink",
-                priceFeed: "0x58B375D4A5ddAa7df7C54FE5A6A4B7024747fBE3",
+                priceFeed: "0x3c6Cd9Cc7c7a4c2Cf5a82734CD249D7D593354dA",
                 baseUnit: "1000000000000000000",
                 underlyingDecimals: 18,
             },
@@ -48,9 +48,10 @@ const config: ProtocolConfig = {
             },
             meweETH: {
                 source: "chainlink",
-                priceFeed: "0xEAd770C0F71f55D0337B0C7524AC3c72103cc032",
+                priceFeed: "0x1FBc7d24654b10c71fd74d3730d9Df17836181EF",
                 baseUnit: "1000000000000000000",
                 underlyingDecimals: 18,
+                toSymbol: "meWETH_api3",
             },
             mewrsETH: {
                 source: "chainlink",
